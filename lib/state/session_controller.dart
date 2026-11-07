@@ -66,8 +66,9 @@ class SessionController extends ChangeNotifier {
   }
 
   Future<void> signIn(String email, String password) => _run(() async {
-    if (Validation.email(email) != null)
+    if (Validation.email(email) != null) {
       throw StateError('Use your ALU email address.');
+    }
     await _auth.signInWithEmailAndPassword(
       email: email.trim().toLowerCase(),
       password: password,
@@ -88,8 +89,9 @@ class SessionController extends ChangeNotifier {
         await credential.user!.sendEmailVerification();
       });
   Future<void> resetPassword(String email) => _run(() async {
-    if (Validation.email(email) != null)
+    if (Validation.email(email) != null) {
       throw StateError('Enter a valid ALU email first.');
+    }
     await _auth.sendPasswordResetEmail(email: email.trim().toLowerCase());
   });
   Future<void> sendVerification() =>
