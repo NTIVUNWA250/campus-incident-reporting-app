@@ -44,6 +44,7 @@ class IncidentController extends ChangeNotifier {
     _subscription?.cancel();
     loading = true;
     error = null;
+    notifyListeners();
     _subscription = repository
         .watch(uid, staff, limit)
         .listen(
