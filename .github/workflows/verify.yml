@@ -1,0 +1,42 @@
+name: Verify Campus Care
+on: [push, pull_request]
+jobs:
+  flutter:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.41.9'
+          cache: true
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - run: flutter pub get
+      - run: dart format --output=none --set-exit-if-changed lib test
+      - run: flutter analyze
+      - run: flutter test
+      - run: node scripts/check-ascii.mjs
+      - run: flutter build apk --debug --dart-define=USE_FIREBASE_EMULATORS=true
+      - uses: actions/upload-artifact@v4
+        with:
+          name: campus-care-local-debug
+          path: build/app/outputs/flutter-apk/app-debug.apk
+  firebase-rules:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - run: npm ci
+      - run: npm run test:rules

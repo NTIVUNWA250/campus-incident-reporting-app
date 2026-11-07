@@ -1,0 +1,17 @@
+{
+  "name": "campus-care-backend-checks",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "emulators": "firebase emulators:start --project demo-campus-care --import=.firebase/local-data --export-on-exit=.firebase/local-data",
+    "seed": "node scripts/seed-emulators.mjs --emulator",
+    "test:rules": "firebase emulators:exec --project demo-campus-care --only auth,firestore,storage \"node --test --test-concurrency=1 test/rules/*.test.mjs\"",
+    "check:ascii": "node scripts/check-ascii.mjs"
+  },
+  "devDependencies": {
+    "@firebase/rules-unit-testing": "^5.0.0",
+    "firebase": "^12.0.0",
+    "firebase-admin": "^13.0.0",
+    "firebase-tools": "^15.0.0"
+  }
+}
