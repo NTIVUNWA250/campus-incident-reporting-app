@@ -47,6 +47,14 @@ Windows development machine.
 
 ## Connect a hosted Firebase project
 
+Android is now configured for project `campus-incident-e183e` using
+lib/firebase_options.dart. Email/Password authentication is enabled and the
+Standard Firestore database in us-central1 has its free tier enabled. The
+repository rules and index have been deployed. Normal `flutter run` uses
+this hosted project; the emulator flag still selects the isolated local demo.
+Initialization uses explicit Dart options so local emulator configuration is
+not overridden by Android's automatic Google Services initialization.
+
 1. Register the Android application ID `com.ntivunwa.campus_care` in the
    chosen Firebase project and enable Email/Password authentication.
 2. Create Cloud Firestore in production mode and configure Firebase Storage.
@@ -59,8 +67,11 @@ firebase deploy --project YOUR_PROJECT_ID --only firestore,storage
 flutter run --dart-define-from-file=config/firebase.json
 ```
 
-Hosted Firebase Storage requires a Blaze billing account. No hosted project
-or billing account was created for this repository. Free local emulators
+Hosted Firebase Storage requires a Blaze billing account. The hosted project
+remains on Spark and no billing has been enabled. Its Storage bucket is not
+provisioned; a bucket identifier in the configuration does not create one.
+Hosted photo uploads remain unavailable until Storage is provisioned.
+Free local emulators
 provide all three services for development; they do not establish acceptance
 of emulator-only assessment evidence. Check the course requirements before
 using local evidence for submission.

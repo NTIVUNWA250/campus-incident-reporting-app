@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/foundation.dart';
+import '../firebase_options.dart';
 
 const useEmulators = bool.fromEnvironment('USE_FIREBASE_EMULATORS');
 const emulatorHost = String.fromEnvironment(
@@ -19,21 +20,33 @@ Future<void> initializeFirebase() async {
   const app = String.fromEnvironment('FIREBASE_APP_ID');
   const sender = String.fromEnvironment('FIREBASE_MESSAGING_SENDER_ID');
   const bucket = String.fromEnvironment('FIREBASE_STORAGE_BUCKET');
+  final hasOverrides = [
+    project,
+    key,
+    app,
+    sender,
+    bucket,
+  ].any((s) => s.isNotEmpty);
   if (!useEmulators &&
+      hasOverrides &&
       [project, key, app, sender, bucket].any((s) => s.isEmpty)) {
     throw StateError(
       'Firebase is not configured. Use the local emulator launch configuration or supply config/firebase.json.',
     );
   }
   await Firebase.initializeApp(
-    options: FirebaseOptions(
-      apiKey: useEmulators ? 'demo-api-key' : key,
-      appId: useEmulators ? '1:1234567890:android:0123456789abcdef' : app,
-      messagingSenderId: useEmulators ? '1234567890' : sender,
-      projectId: useEmulators ? 'demo-campus-care' : project,
-      storageBucket: useEmulators ? 'demo-campus-care.appspot.com' : bucket,
-      iosBundleId: 'com.ntivunwa.campusCare',
-    ),
+    options: !useEmulators && !hasOverrides
+        ? DefaultFirebaseOptions.currentPlatform
+        : FirebaseOptions(
+            apiKey: useEmulators ? 'demo-api-key' : key,
+            appId: useEmulators ? '1:1234567890:android:0123456789abcdef' : app,
+            messagingSenderId: useEmulators ? '1234567890' : sender,
+            projectId: useEmulators ? 'demo-campus-care' : project,
+            storageBucket: useEmulators
+                ? 'demo-campus-care.appspot.com'
+                : bucket,
+            iosBundleId: 'com.ntivunwa.campusCare',
+          ),
   );
   if (useEmulators) {
     await FirebaseAuth.instance.useAuthEmulator(emulatorHost, 9099);

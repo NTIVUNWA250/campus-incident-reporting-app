@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "636908895340",
+    "project_id": "campus-incident-e183e",
+    "storage_bucket": "campus-incident-e183e.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:636908895340:android:49a614d81da957dac8ec49",
+        "android_client_info": {
+          "package_name": "com.ntivunwa.campus_care"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBE4-faDwkXP2eAmldjZlh0blBA8C9nlnM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
