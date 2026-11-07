@@ -84,9 +84,13 @@ class Incident {
     photoPath: data['photoPath'] as String,
     createdAt: (data['createdAt'] as Timestamp?)?.toDate(),
     updatedAt: (data['updatedAt'] as Timestamp?)?.toDate(),
-    history: (data['history'] as List)
-        .map((e) => StatusEvent.fromMap(Map<String, dynamic>.from(e as Map)))
-        .toList(),
+    history:
+        (data['history'] as Map<String, dynamic>).values
+            .map(
+              (e) => StatusEvent.fromMap(Map<String, dynamic>.from(e as Map)),
+            )
+            .toList()
+          ..sort((a, b) => a.status.index.compareTo(b.status.index)),
   );
 }
 
