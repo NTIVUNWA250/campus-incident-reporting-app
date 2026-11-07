@@ -13,7 +13,12 @@ import 'package:campus_care/screens/home_screen.dart';
 import 'package:campus_care/screens/incident_detail_screen.dart';
 import 'package:campus_care/screens/incident_form_screen.dart';
 import 'package:campus_care/screens/reports_screen.dart';
+import 'package:campus_care/screens/profile_screen.dart';
 import 'package:campus_care/state/incident_controller.dart';
+import 'package:campus_care/widgets/report_card.dart';
+
+Finder reportTitle(String title) =>
+    find.descendant(of: find.byType(ReportCard), matching: find.text(title));
 
 Future<void> waitFor(WidgetTester tester, Finder finder) async {
   for (var attempt = 0; attempt < 80; attempt++) {
@@ -27,11 +32,21 @@ Future<void> waitFor(WidgetTester tester, Finder finder) async {
   );
 }
 
+Future<void> captureEvidence(WidgetTester tester, String name) async {
+  await tester.pumpAndSettle();
+  debugPrint('EVIDENCE:$name');
+  await tester.pump(const Duration(seconds: 3));
+}
+
 Future<void> showAndTap(
   WidgetTester tester,
   Finder finder, {
   Finder? within,
 }) async {
+  FocusManager.instance.primaryFocus?.unfocus();
+  await tester.pumpAndSettle();
+  await tester.pump(const Duration(milliseconds: 500));
+  await tester.pumpAndSettle();
   if (within != null) {
     await tester.scrollUntilVisible(
       finder,
@@ -43,6 +58,8 @@ Future<void> showAndTap(
   } else {
     await tester.ensureVisible(finder);
   }
+  await Scrollable.ensureVisible(tester.element(finder), alignment: 0.5);
+  await tester.pumpAndSettle();
   await tester.tap(finder);
   await tester.pumpAndSettle();
 }
@@ -60,6 +77,7 @@ void main() {
       await app.main();
       await FirebaseAuth.instance.signOut();
       await waitFor(tester, find.text('New here? Create an account'));
+      await captureEvidence(tester, 'auth');
       await tester.tap(find.text('New here? Create an account'));
       await tester.pumpAndSettle();
       final email =
@@ -98,10 +116,15 @@ void main() {
       await tester.tap(find.text('I have verified my email'));
       await waitFor(tester, find.byType(AppShell));
       expect(FirebaseAuth.instance.currentUser!.emailVerified, isTrue);
+      await tester.pumpAndSettle();
+      await captureEvidence(tester, 'home');
       await tester.tap(find.text('Report an issue'));
       await tester.pumpAndSettle();
+      await captureEvidence(tester, 'form');
+      await tester.tap(find.text('Water'));
+      await tester.pumpAndSettle();
       final title =
-          'Mobile water report ${DateTime.now().millisecondsSinceEpoch}';
+          'Water shortage - ${DateTime.now().millisecondsSinceEpoch % 100000}';
       await tester.enterText(
         find.byKey(const ValueKey('incident-title')),
         title,
@@ -139,7 +162,20 @@ void main() {
         find.text('Submit report'),
         within: find.byType(IncidentFormScreen),
       );
-      await waitFor(tester, find.text(title));
+      await waitFor(tester, find.byType(AppShell));
+      await tester.tap(find.text('Reports').last);
+      await tester.pumpAndSettle();
+      await tester.scrollUntilVisible(
+        reportTitle(title),
+        180,
+        scrollable: find
+            .descendant(
+              of: find.byType(ReportsScreen),
+              matching: find.byType(Scrollable),
+            )
+            .first,
+      );
+      await captureEvidence(tester, 'reports');
       final controller = tester
           .element(find.byType(AppShell))
           .read<IncidentController>();
@@ -189,15 +225,20 @@ void main() {
         'incidents/${incident.ownerId}/${incident.id}/photo',
       );
       expect(photo, orderedEquals(png));
-      await tester.tap(find.text(title));
+      await tester.tap(reportTitle(title));
       await tester.pumpAndSettle();
       expect(find.text('Status timeline'), findsOneWidget);
       expect(find.text('Staff actions'), findsNothing);
+      await captureEvidence(tester, 'details');
       await tester.pageBack();
       await tester.pumpAndSettle();
       await tester.tap(find.text('Profile'));
       await tester.pumpAndSettle();
-      await showAndTap(tester, find.text('Sign out'));
+      await showAndTap(
+        tester,
+        find.text('Sign out'),
+        within: find.byType(ProfileScreen),
+      );
       await waitFor(tester, find.text('Sign in'));
       await tester.enterText(
         find.byType(TextFormField).at(0),
@@ -215,7 +256,7 @@ void main() {
       await tester.pumpAndSettle();
       await showAndTap(
         tester,
-        find.text(title),
+        reportTitle(title),
         within: find.byType(ReportsScreen),
       );
       for (final label in ['in progress', 'resolved']) {
@@ -228,7 +269,14 @@ void main() {
           find.byType(TextFormField),
           'Campus support update: issue is $label.',
         );
+        if (label == 'in progress') {
+          await captureEvidence(tester, 'staff');
+        }
         await tester.tap(find.text('Update status'));
+        await tester.pumpAndSettle();
+        ScaffoldMessenger.of(
+          tester.element(find.byType(IncidentDetailScreen)),
+        ).hideCurrentSnackBar();
         await tester.pumpAndSettle();
       }
       final staffController = tester
@@ -243,7 +291,11 @@ void main() {
       await tester.pumpAndSettle();
       await tester.tap(find.text('Profile'));
       await tester.pumpAndSettle();
-      await showAndTap(tester, find.text('Sign out'));
+      await showAndTap(
+        tester,
+        find.text('Sign out'),
+        within: find.byType(ProfileScreen),
+      );
       await waitFor(tester, find.text('Sign in'));
       await tester.enterText(find.byType(TextFormField).at(0), email);
       await tester.enterText(
@@ -252,7 +304,11 @@ void main() {
       );
       await showAndTap(tester, find.text('Sign in'));
       await waitFor(tester, find.byType(AppShell));
-      await waitFor(tester, find.text(title));
+      await tester.tap(find.text('Reports').last);
+      await tester.pumpAndSettle();
+      await tester.enterText(find.byType(TextField).first, title);
+      await tester.pumpAndSettle();
+      await waitFor(tester, reportTitle(title));
       expect(find.text('Resolved'), findsWidgets);
       expect(tester.takeException(), isNull);
     },
