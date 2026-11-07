@@ -1,0 +1,7 @@
+{
+  "FIREBASE_PROJECT_ID": "your-project-id",
+  "FIREBASE_API_KEY": "your-platform-api-key",
+  "FIREBASE_APP_ID": "your-platform-app-id",
+  "FIREBASE_MESSAGING_SENDER_ID": "your-sender-id",
+  "FIREBASE_STORAGE_BUCKET": "your-bucket.firebasestorage.app"
+}

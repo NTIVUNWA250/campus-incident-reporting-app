@@ -1,0 +1,7 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {"name": "Local Firebase (Android emulator)", "request": "launch", "type": "dart", "args": ["--dart-define=USE_FIREBASE_EMULATORS=true"]},
+    {"name": "Firebase project", "request": "launch", "type": "dart", "args": ["--dart-define-from-file=config/firebase.json"]}
+  ]
+}

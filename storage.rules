@@ -1,0 +1,22 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    function verifiedAlu() {
+      return request.auth != null && request.auth.token.email_verified == true
+        && request.auth.token.email.matches('[ -~]+')
+        && request.auth.token.email.matches('^[^@ ]+@(alustudent[.]com|alueducation[.]com)$');
+    }
+    function report(id) { return firestore.get(/databases/(default)/documents/incidents/$(id)).data; }
+    match /incidents/{uid}/{id}/photo {
+      allow read: if verifiedAlu() && report(id).ownerId == uid
+        && (request.auth.uid == uid || request.auth.token.get('staff', false) == true);
+      allow create, update: if verifiedAlu() && request.auth.uid == uid
+        && report(id).ownerId == uid && report(id).status == 'submitted'
+        && request.resource.size > 0 && request.resource.size <= 5 * 1024 * 1024
+        && request.resource.contentType in ['image/jpeg', 'image/png']
+        && !request.resource.metadata.keys().hasAny(['firebaseStorageDownloadTokens']);
+      allow delete: if verifiedAlu() && request.auth.uid == uid
+        && report(id).ownerId == uid && report(id).status == 'submitted';
+    }
+  }
+}
