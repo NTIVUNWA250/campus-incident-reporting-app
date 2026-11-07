@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:campus_care/core/app_theme.dart';
 import 'package:campus_care/screens/home_screen.dart';
 import 'package:campus_care/screens/incident_detail_screen.dart';
+import 'package:campus_care/screens/incident_form_screen.dart';
 import 'package:campus_care/state/session_controller.dart';
 import 'package:campus_care/state/incident_controller.dart';
 import 'domain_test.dart' show sample;
@@ -44,7 +45,12 @@ void main() {
       await tester.scrollUntilVisible(
         find.text('Submit report'),
         250,
-        scrollable: find.byType(Scrollable).last,
+        scrollable: find
+            .descendant(
+              of: find.byType(IncidentFormScreen),
+              matching: find.byType(Scrollable),
+            )
+            .first,
       );
       await tester.tap(find.text('Submit report'));
       await tester.pumpAndSettle();

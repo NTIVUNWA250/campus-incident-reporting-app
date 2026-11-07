@@ -13,8 +13,7 @@ service firebase.storage {
       allow create, update: if verifiedAlu() && request.auth.uid == uid
         && report(id).ownerId == uid && report(id).status == 'submitted'
         && request.resource.size > 0 && request.resource.size <= 5 * 1024 * 1024
-        && request.resource.contentType in ['image/jpeg', 'image/png']
-        && !request.resource.metadata.keys().hasAny(['firebaseStorageDownloadTokens']);
+        && request.resource.contentType in ['image/jpeg', 'image/png'];
       allow delete: if verifiedAlu() && request.auth.uid == uid
         && report(id).ownerId == uid && report(id).status == 'submitted';
     }

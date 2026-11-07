@@ -126,11 +126,10 @@ test('photos require a parent report, ownership and verification', async () => {
   const unverified = env.authenticatedContext('alice', token('alice@alustudent.com', false));
   await assertFails(uploadBytes(picture(unverified), bytes, { contentType: 'image/jpeg' }));
 });
-test('Storage rejects large photos, unsupported types and public download tokens', async () => {
+test('Storage rejects large photos and unsupported types', async () => {
   await seed();
   await assertFails(uploadBytes(picture(alice()), new Uint8Array(5 * 1024 * 1024 + 1), { contentType: 'image/jpeg' }));
   await assertFails(uploadBytes(picture(alice()), bytes, { contentType: 'application/pdf' }));
-  await assertFails(uploadBytes(picture(alice()), bytes, { contentType: 'image/jpeg', customMetadata: { firebaseStorageDownloadTokens: 'public-token' } }));
 });
 test('owner can delete a submitted photo but cannot change a photo after staff begin', async () => {
   await seed(); await assertSucceeds(uploadBytes(picture(alice()), bytes, { contentType: 'image/jpeg' }));

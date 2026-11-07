@@ -37,7 +37,7 @@ Future<void> initializeFirebase() async {
   );
   if (useEmulators) {
     await FirebaseAuth.instance.useAuthEmulator(emulatorHost, 9099);
-    FirebaseFirestore.instance.useFirestoreEmulator(emulatorHost, 8080);
+    FirebaseFirestore.instance.useFirestoreEmulator(emulatorHost, 8088);
     FirebaseFirestore.instance.settings = const Settings(
       persistenceEnabled: false,
     );
