@@ -145,7 +145,7 @@ void main() {
           .read<IncidentController>();
       final incident = controller.incidents.firstWhere((i) => i.title == title);
       final png = base64Decode(
-        'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jRZkAAAAASUVORK5CYII=',
+        'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR4nGMocPz6HwAFcQKmW+4ckAAAAABJRU5ErkJggg==',
       );
       // Verify SDK edit and delete behavior on a separate, temporary report.
       final repository = controller.repository;
