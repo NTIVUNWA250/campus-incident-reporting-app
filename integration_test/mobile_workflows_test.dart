@@ -8,6 +8,7 @@ import 'package:provider/provider.dart';
 import 'package:campus_care/main.dart' as app;
 import 'package:campus_care/core/firebase_config.dart';
 import 'package:campus_care/models/incident.dart';
+import 'package:campus_care/data/incident_repository.dart';
 import 'package:campus_care/screens/home_screen.dart';
 import 'package:campus_care/screens/incident_detail_screen.dart';
 import 'package:campus_care/screens/incident_form_screen.dart';
@@ -101,13 +102,36 @@ void main() {
       await tester.pumpAndSettle();
       final title =
           'Mobile water report ${DateTime.now().millisecondsSinceEpoch}';
-      await tester.enterText(find.byType(TextFormField).at(0), title);
       await tester.enterText(
-        find.byType(TextFormField).at(1),
-        'No water in the residence since this morning. Please inspect the main supply.',
+        find.byKey(const ValueKey('incident-title')),
+        title,
+      );
+      await tester.scrollUntilVisible(
+        find.byKey(const ValueKey('incident-description')),
+        180,
+        scrollable: find
+            .descendant(
+              of: find.byType(IncidentFormScreen),
+              matching: find.byType(Scrollable),
+            )
+            .first,
       );
       await tester.enterText(
-        find.byType(TextFormField).at(2),
+        find.byKey(const ValueKey('incident-description')),
+        'No water in the residence since this morning. Please inspect the main supply.',
+      );
+      await tester.scrollUntilVisible(
+        find.byKey(const ValueKey('incident-location')),
+        180,
+        scrollable: find
+            .descendant(
+              of: find.byType(IncidentFormScreen),
+              matching: find.byType(Scrollable),
+            )
+            .first,
+      );
+      await tester.enterText(
+        find.byKey(const ValueKey('incident-location')),
         'Student Residence - Floor 2',
       );
       await showAndTap(
@@ -123,6 +147,43 @@ void main() {
       final png = base64Decode(
         'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jRZkAAAAASUVORK5CYII=',
       );
+      // Verify SDK edit and delete behavior on a separate, temporary report.
+      final repository = controller.repository;
+      final temporaryTitle =
+          'Temporary mobile CRUD ${DateTime.now().millisecondsSinceEpoch}';
+      await repository.create(
+        IncidentDraft(
+          title: temporaryTitle,
+          description:
+              'Temporary mobile test report for validating edit and deletion.',
+          location: 'Block B - Room 204',
+          category: IncidentCategory.facilities,
+        ),
+        incident.ownerId,
+        'Mobile Test Student',
+        png,
+      );
+      final temporary =
+          (await repository
+                  .watch(incident.ownerId, false, 100)
+                  .firstWhere(
+                    (items) => items.any((i) => i.title == temporaryTitle),
+                  ))
+              .firstWhere((i) => i.title == temporaryTitle);
+      await repository.edit(
+        temporary,
+        IncidentDraft(
+          title: temporaryTitle,
+          description:
+              'Updated description saved and retrieved through Firebase.',
+          location: 'Block B - Room 205',
+          category: IncidentCategory.facilities,
+        ),
+      );
+      await repository.delete(temporary);
+      await repository
+          .watch(incident.ownerId, false, 100)
+          .firstWhere((items) => !items.any((i) => i.id == temporary.id));
       await controller.repository.attach(incident, png);
       final photo = await controller.repository.photo(
         'incidents/${incident.ownerId}/${incident.id}/photo',

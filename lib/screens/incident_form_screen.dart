@@ -229,6 +229,7 @@ class _IncidentFormScreenState extends State<IncidentFormScreen> {
               ),
               const SizedBox(height: 24),
               TextFormField(
+                key: const ValueKey('incident-title'),
                 controller: _title,
                 enabled: !_busy,
                 maxLength: 100,
@@ -241,6 +242,7 @@ class _IncidentFormScreenState extends State<IncidentFormScreen> {
               ),
               const SizedBox(height: 12),
               TextFormField(
+                key: const ValueKey('incident-description'),
                 controller: _description,
                 enabled: !_busy,
                 maxLength: 2000,
@@ -255,6 +257,7 @@ class _IncidentFormScreenState extends State<IncidentFormScreen> {
               ),
               const SizedBox(height: 12),
               TextFormField(
+                key: const ValueKey('incident-location'),
                 controller: _location,
                 enabled: !_busy,
                 maxLength: 120,
