@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import '../models/incident.dart';
 import '../core/validation.dart';
+import '../core/photo_data.dart';
 
 class IncidentDraft {
   const IncidentDraft({
@@ -39,6 +40,7 @@ abstract class IncidentRepository {
     Uint8List? photo,
   );
   Future<void> edit(Incident incident, IncidentDraft draft);
+  Future<void> attach(Incident incident, Uint8List photo);
   Future<void> delete(Incident incident);
   Future<void> advance(Incident incident, String staffId, String note);
   Future<Uint8List?> photo(String path);
@@ -74,8 +76,7 @@ class FirebaseIncidentRepository implements IncidentRepository {
     Uint8List? photo,
   ) async {
     final reference = reports.doc();
-    if (photo != null && photo.length > 5 * 1024 * 1024)
-      throw StateError('Choose a photo smaller than 5 MB.');
+    if (photo != null) photoContentType(photo);
     await reference.set({
       ...draft.toMap(),
       'ownerId': uid,
@@ -94,10 +95,13 @@ class FirebaseIncidentRepository implements IncidentRepository {
       },
     });
     if (photo == null) return null;
-    final path = 'incidents/$uid/${reference.id}/photo.jpg';
+    final path = 'incidents/$uid/${reference.id}/photo';
     final object = storage.ref(path);
     try {
-      await object.putData(photo, SettableMetadata(contentType: 'image/jpeg'));
+      await object.putData(
+        photo,
+        SettableMetadata(contentType: photoContentType(photo)),
+      );
       await reference.update({
         'photoPath': path,
         'updatedAt': FieldValue.serverTimestamp(),
@@ -121,13 +125,13 @@ class FirebaseIncidentRepository implements IncidentRepository {
     });
   }
 
+  @override
   Future<void> attach(Incident incident, Uint8List photo) async {
-    if (photo.length > 5 * 1024 * 1024)
-      throw StateError('Choose a photo smaller than 5 MB.');
-    final path = 'incidents/${incident.ownerId}/${incident.id}/photo.jpg';
+    final contentType = photoContentType(photo);
+    final path = 'incidents/${incident.ownerId}/${incident.id}/photo';
     await storage
         .ref(path)
-        .putData(photo, SettableMetadata(contentType: 'image/jpeg'));
+        .putData(photo, SettableMetadata(contentType: contentType));
     await reports.doc(incident.id).update({
       'photoPath': path,
       'updatedAt': FieldValue.serverTimestamp(),
@@ -149,8 +153,9 @@ class FirebaseIncidentRepository implements IncidentRepository {
 
   @override
   Future<void> advance(Incident incident, String staffId, String note) async {
-    if (Validation.text(note, 'Update note', 5, 300) != null)
+    if (Validation.text(note, 'Update note', 5, 300) != null) {
       throw StateError('Write an update note of 5-300 ASCII characters.');
+    }
     await db.runTransaction((transaction) async {
       final reference = reports.doc(incident.id);
       final snapshot = await transaction.get(reference);
@@ -158,10 +163,11 @@ class FirebaseIncidentRepository implements IncidentRepository {
       final current = IncidentStatus.values.byName(
         snapshot.data()!['status'] as String,
       );
-      if (current != incident.status)
+      if (current != incident.status) {
         throw StateError(
           'This report was updated by someone else. Review the latest status.',
         );
+      }
       final next = current.next;
       if (next == null) throw StateError('This report is already resolved.');
       transaction.update(reference, {
