@@ -55,4 +55,5 @@ firestore-debug.log
 storage-debug.log
 ui-debug.log
 .firebase/
+.kotlin/
 *-debug.log
